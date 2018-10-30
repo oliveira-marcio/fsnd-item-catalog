@@ -69,20 +69,12 @@ def showAllItems(category_name):
 
 @app.route('/catalog/<category_name>/<item_name>')
 def showItem(category_name, item_name):
-    category = [category for category in categories if category["name"].lower() == category_name.lower()]
-    if not len(category):
-        flash("Category not found")
-        return redirect(url_for('showCatalog'))
+    item, return_value = checkCategoryAndItem(category_name, item_name)
 
-    category_id = category[0]["id"]
-    category_name = category[0]["name"]
-
-    item = [item for item in items if (item["title"].lower() == item_name.lower() and item["category_id"] == category_id)]
-    if not len(item):
-        flash("Item not found in '%s'" % category_name)
-        return redirect(url_for('showAllItems', category_name = category_name.lower()))
-
-    return render_template("item.html", category_name = category_name, item = item[0])
+    if item:
+        return render_template("item.html", category_name = category_name, item = item)
+    else:
+        return return_value
 
 @app.route('/catalog/new', defaults={'category_name': None}, methods=["GET", "POST"])
 @app.route('/catalog/<category_name>/new', methods=["GET", "POST"])
@@ -100,13 +92,48 @@ def addItem(category_name):
             return redirect(url_for('addItem'))
     return render_template("newitem.html", category_name = category_name, categories = categories)
 
-@app.route('/catalog/<category_name>/<item_name>/edit', methods=["GET", "PUT"])
+@app.route('/catalog/<category_name>/<item_name>/edit', methods=["GET", "POST"])
 def editItem(category_name, item_name):
-    return "Editando '%s' de '%s'" % (item_name, category_name)
+    if request.method == 'POST':
+        flash("Item edited")
+        return redirect(url_for('showItem', category_name = category_name, item_name = item_name))
 
-@app.route('/catalog/<category_name>/<item_name>/delete', methods=["GET", "DELETE"])
+    item, return_value = checkCategoryAndItem(category_name, item_name)
+
+    if item:
+        return render_template("edititem.html", category_name = category_name, categories = categories, item = item)
+    else:
+        return return_value
+
+@app.route('/catalog/<category_name>/<item_name>/delete', methods=["GET", "POST"])
 def deleteItem(category_name, item_name):
-    return "Deletando '%s' de '%s'" % (item_name, category_name)
+    if request.method == 'POST':
+        flash("Item deleted")
+        return redirect(url_for('showAllItems', category_name = category_name))
+
+    item, return_value = checkCategoryAndItem(category_name, item_name)
+
+    if item:
+        return render_template("deleteitem.html", category_name = category_name, item = item)
+    else:
+        return return_value
+
+def checkCategoryAndItem(category_name, item_name):
+    category = [category for category in categories if category["name"].lower() == category_name.lower()]
+    if not len(category):
+        flash("Category not found")
+        return None, redirect(url_for('showCatalog'))
+
+    category_id = category[0]["id"]
+    category_name = category[0]["name"]
+
+    item = [item for item in items if (item["title"].lower() == item_name.lower() and item["category_id"] == category_id)]
+    if not len(item):
+        flash("Item not found in '%s'" % category_name)
+        return None, redirect(url_for('showAllItems', category_name = category_name.lower()))
+
+    return item[0], None
+
 
 # Endpoints para a API
 
