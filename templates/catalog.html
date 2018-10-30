@@ -32,7 +32,11 @@
 
         {% if items %}
             {% for i in items %}
-            <p>{{i.title}}</p>
+                {% if category_name %}
+            <p><a href="{{url_for('showItem', category_name = category_name|lower, item_name = i.title|lower)}}">{{i.title}}</a></p>
+                {% else %}
+            <p><a href="{{url_for('showItem', category_name = i.category_name|lower, item_name = i.title|lower)}}">{{i.title}} ({{i.category_name}})</a></p>
+                {% endif %}
             {% endfor %}
         {% else %}
             <p>No items found</p>

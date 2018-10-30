@@ -50,6 +50,8 @@ items = [
 @app.route('/')
 @app.route('/catalog')
 def showCatalog():
+    for item in items:
+        item["category_name"] = [category for category in categories if category["id"] == item["category_id"]][0]["name"]
     return render_template("catalog.html", categories = categories, items = items, category_name = None)
 
 @app.route('/catalog/<category_name>')
@@ -67,7 +69,20 @@ def showAllItems(category_name):
 
 @app.route('/catalog/<category_name>/<item_name>')
 def showItem(category_name, item_name):
-    return "Exibindo item '%s' de '%s'" % (item_name, category_name)
+    category = [category for category in categories if category["name"].lower() == category_name.lower()]
+    if not len(category):
+        flash("Category not found")
+        return redirect(url_for('showCatalog'))
+
+    category_id = category[0]["id"]
+    category_name = category[0]["name"]
+
+    item = [item for item in items if (item["title"].lower() == item_name.lower() and item["category_id"] == category_id)]
+    if not len(item):
+        flash("Item not found in '%s'" % category_name)
+        return redirect(url_for('showAllItems', category_name = category_name.lower()))
+
+    return render_template("item.html", category_name = category_name, item = item[0])
 
 @app.route('/catalog/new', defaults={'category_name': None}, methods=["GET", "POST"])
 @app.route('/catalog/<category_name>/new', methods=["GET", "POST"])
