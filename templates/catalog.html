@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+    <head>
+         <meta charset="utf-8">
+    </head>
+    <body>
+        <header><h1>Item Catalog</h1></header>
+        <div>
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+            <ul>
+                {% for message in messages %}
+                <li> <strong> {{ message }} </strong> </li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+        {% endwith %}
+        </div>
+
+        <div>
+            <h3>Categories:</h3>
+        {% for c in categories %}
+            <p>{{c.name}}</p>
+        {% endfor %}
+        </div>
+        <div>
+        {% if category_name %}
+            <h3>{{category_name}} Items ({{items|length}} items):</h3>
+        {% else %}
+            <h3>Latest Items:</h3>
+        {% endif %}
+
+        {% if items %}
+            {% for i in items %}
+            <p>{{i.title}}</p>
+            {% endfor %}
+        {% else %}
+            <p>No items found</p>
+        {% endif %}
+        </div>
+    </body>
+</html>
