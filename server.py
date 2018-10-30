@@ -87,10 +87,18 @@ def showItem(category_name, item_name):
 @app.route('/catalog/new', defaults={'category_name': None}, methods=["GET", "POST"])
 @app.route('/catalog/<category_name>/new', methods=["GET", "POST"])
 def addItem(category_name):
+    if request.method == 'POST':
+        flash("New item created")
+        if category_name:
+            return redirect(url_for('showAllItems', category_name = category_name))
+        else:
+            return redirect(url_for('showCatalog'))
+
     if category_name:
-        return "Criando novo item em '%s'" % category_name
-    else:
-        return "Criando novo item"
+        category = [category for category in categories if category["name"].lower() == category_name.lower()]
+        if not len(category):
+            return redirect(url_for('addItem'))
+    return render_template("newitem.html", category_name = category_name, categories = categories)
 
 @app.route('/catalog/<category_name>/<item_name>/edit', methods=["GET", "PUT"])
 def editItem(category_name, item_name):

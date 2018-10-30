@@ -26,8 +26,10 @@
         <div>
         {% if category_name %}
             <h3>{{category_name}} Items ({{items|length}} items):</h3>
+            <h4><a href="{{url_for('addItem', category_name = category_name|lower)}}">New Item</a></h4>
         {% else %}
             <h3>Latest Items:</h3>
+            <h4><a href="{{url_for('addItem')}}">New Item</a></h4>
         {% endif %}
 
         {% if items %}
