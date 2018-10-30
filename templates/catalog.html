@@ -16,11 +16,11 @@
             {% endif %}
         {% endwith %}
         </div>
-
+        <p><a href="{{url_for('showCatalog')}}">Home</a></p>
         <div>
             <h3>Categories:</h3>
         {% for c in categories %}
-            <p>{{c.name}}</p>
+            <p><a href="{{url_for('showAllItems', category_name = c.name|lower)}}">{{c.name}}</a></p>
         {% endfor %}
         </div>
         <div>
