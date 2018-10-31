@@ -2,9 +2,18 @@
 # coding: utf-8
 
 from flask import Flask, render_template, request, redirect, url_for, flash
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from database_setup import Base, Categories, Items, Users
 import random, string
 
 app = Flask(__name__)
+
+engine = create_engine('sqlite:///catalog.db', connect_args={'check_same_thread': False})
+Base.metadata.bind = engine
+
+DBSession = sessionmaker(bind=engine)
+session = DBSession()
 
 # Fake itens
 categories = [
@@ -50,8 +59,8 @@ items = [
 @app.route('/')
 @app.route('/catalog')
 def showCatalog():
-    for item in items:
-        item["category_name"] = [category for category in categories if category["id"] == item["category_id"]][0]["name"]
+    categories = session.query(Categories).all()
+    items = session.query(Items.title, Categories.name.label('category_name')).join(Items.category).all()
     return render_template("catalog.html", categories = categories, items = items, category_name = None)
 
 @app.route('/catalog/<category_name>')
