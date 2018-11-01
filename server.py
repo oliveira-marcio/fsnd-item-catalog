@@ -59,22 +59,33 @@ items = [
 @app.route('/')
 @app.route('/catalog')
 def showCatalog():
-    categories = session.query(Categories).all()
-    items = session.query(Items.title, Categories.name.label('category_name')).join(Items.category).all()
-    return render_template("catalog.html", categories = categories, items = items, category_name = None)
+    MAX_RESULTS = 10
+    categories = session.query(Categories).order_by(Categories.name).all()
+    items = session.query(Items.title, Categories.name.label('category_name')) \
+        .join(Items.category) \
+        .order_by(Items.id.desc()) \
+        .limit(MAX_RESULTS) \
+        .all()
+    return render_template("catalog.html", categories = categories,
+                            items = items, category_name = None)
 
 @app.route('/catalog/<category_name>')
 @app.route('/catalog/<category_name>/items')
 def showAllItems(category_name):
-    category = [category for category in categories if category["name"].lower() == category_name.lower()]
-    if not len(category):
+    categories = session.query(Categories).order_by(Categories.name).all()
+    category = session.query(Categories) \
+        .filter(Categories.name.ilike(category_name.lower())) \
+        .first()
+    if not category:
         flash("Category not found")
         return redirect(url_for('showCatalog'))
 
-    category_id = category[0]["id"]
-    category_name = category[0]["name"]
-    filtered_items = [item for item in items if item["category_id"] == category_id]
-    return render_template("catalog.html", categories = categories, items = filtered_items, category_name = category_name)
+    items = session.query(Items) \
+        .filter_by(category_id = category.id) \
+        .order_by(Items.title) \
+        .all()
+    return render_template("catalog.html", categories = categories,
+                            items = items, category_name = category.name)
 
 @app.route('/catalog/<category_name>/<item_name>')
 def showItem(category_name, item_name):
