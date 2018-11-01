@@ -9,52 +9,12 @@ import random, string
 
 app = Flask(__name__)
 
-engine = create_engine('sqlite:///catalog.db', connect_args={'check_same_thread': False})
+engine = create_engine('sqlite:///catalog.db',
+                        connect_args={'check_same_thread': False})
 Base.metadata.bind = engine
 
 DBSession = sessionmaker(bind=engine)
 session = DBSession()
-
-# Fake itens
-categories = [
-    {
-        "id": 1,
-        "name": "Soccer",
-    },
-    {
-        "id": 2,
-        "name": "Basketball",
-    },
-    {
-        "id": 3,
-        "name": "Volleyball",
-    }
-]
-
-items = [
-    {
-        "id": 1,
-        "title": "Soccer Ball",
-        "description": "It's a ball",
-        "category_id": 1,
-        "user_id": 1
-    },
-    {
-        "id": 2,
-        "title": "Basket",
-        "description": "It's a basket",
-        "category_id": 2,
-        "user_id": 1
-    },
-    {
-        "id": 3,
-        "title": "Shoes",
-        "description": "It's a shoes",
-        "category_id": 1,
-        "user_id": 1
-    }
-]
-
 
 @app.route('/')
 @app.route('/catalog')
@@ -92,11 +52,13 @@ def showItem(category_name, item_name):
     item, return_value = checkCategoryAndItem(category_name, item_name)
 
     if item:
-        return render_template("item.html", category_name = category_name, item = item)
+        return render_template("item.html", category_name = category_name,
+                                item = item)
     else:
         return return_value
 
-@app.route('/catalog/new', defaults={'category_name': None}, methods=["GET", "POST"])
+@app.route('/catalog/new', defaults={'category_name': None},
+            methods=["GET", "POST"])
 @app.route('/catalog/<category_name>/new', methods=["GET", "POST"])
 def addItem(category_name):
     if request.method == 'POST':
@@ -106,22 +68,30 @@ def addItem(category_name):
         else:
             return redirect(url_for('showCatalog'))
 
+    categories = session.query(Categories).order_by(Categories.name).all()
+
     if category_name:
-        category = [category for category in categories if category["name"].lower() == category_name.lower()]
-        if not len(category):
+        category = session.query(Categories) \
+            .filter(Categories.name.ilike(category_name.lower())) \
+            .first()
+        if not category:
             return redirect(url_for('addItem'))
-    return render_template("newitem.html", category_name = category_name, categories = categories)
+    return render_template("newitem.html", category_name = category_name,
+                            categories = categories)
 
 @app.route('/catalog/<category_name>/<item_name>/edit', methods=["GET", "POST"])
 def editItem(category_name, item_name):
     if request.method == 'POST':
         flash("Item edited")
-        return redirect(url_for('showItem', category_name = category_name, item_name = item_name))
+        return redirect(url_for('showItem', category_name = category_name,
+                                item_name = item_name))
 
     item, return_value = checkCategoryAndItem(category_name, item_name)
 
     if item:
-        return render_template("edititem.html", category_name = category_name, categories = categories, item = item)
+        categories = session.query(Categories).order_by(Categories.name).all()
+        return render_template("edititem.html", category_name = category_name,
+                                categories = categories, item = item)
     else:
         return return_value
 
@@ -134,26 +104,31 @@ def deleteItem(category_name, item_name):
     item, return_value = checkCategoryAndItem(category_name, item_name)
 
     if item:
-        return render_template("deleteitem.html", category_name = category_name, item = item)
+        categories = session.query(Categories).order_by(Categories.name).all()
+        return render_template("deleteitem.html", category_name = category_name,
+                                item = item)
     else:
         return return_value
 
 def checkCategoryAndItem(category_name, item_name):
-    category = [category for category in categories if category["name"].lower() == category_name.lower()]
-    if not len(category):
+    category = session.query(Categories) \
+        .filter(Categories.name.ilike(category_name.lower())) \
+        .first()
+    if not category:
         flash("Category not found")
         return None, redirect(url_for('showCatalog'))
 
-    category_id = category[0]["id"]
-    category_name = category[0]["name"]
+    item = session.query(Items) \
+        .filter_by(category_id = category.id) \
+        .filter(Items.title.ilike(item_name.lower())) \
+        .first()
 
-    item = [item for item in items if (item["title"].lower() == item_name.lower() and item["category_id"] == category_id)]
-    if not len(item):
-        flash("Item not found in '%s'" % category_name)
-        return None, redirect(url_for('showAllItems', category_name = category_name.lower()))
+    if not item:
+        flash("Item not found in '%s'" % category.name)
+        return None, redirect(url_for('showAllItems',
+                                    category_name = category.name.lower()))
 
-    return item[0], None
-
+    return item, None
 
 # Endpoints para a API
 
@@ -172,5 +147,7 @@ def showItemJSON(category_name, item_name):
 
 if __name__ == '__main__':
     app.debug = True
-    app.config['SECRET_KEY'] = ''.join(random.choice(string.ascii_uppercase + string.digits) for x in xrange(32))
+    app.config['SECRET_KEY'] = '' \
+        .join(random.choice(string.ascii_uppercase + string.digits)
+        for x in xrange(32))
     app.run(host='0.0.0.0', port=8000)
