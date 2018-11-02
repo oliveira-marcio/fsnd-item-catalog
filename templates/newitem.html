@@ -5,20 +5,41 @@
     </head>
     <body>
         <header><h1>New Item</h1></header>
+        <div>
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+            <ul>
+                {% for message in messages %}
+                <li> <strong> {{ message }} </strong> </li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+        {% endwith %}
+        </div>
         {% if category_name %}
         <form id="newitem" action="{{url_for('addItem', category_name = category_name|lower)}}" method = 'POST'>
         {% else %}
         <form id="newitem" action="{{url_for('addItem')}}" method = 'POST'>
         {% endif %}
             <p>Title:</p>
+            {% if item %}
+            <input type="text" size="30" name="title" value="{{item.title}}">
+            {% else %}
             <input type="text" size="30" name="title">
+            {% endif %}
             <p>Description:</p>
+            {% if item %}
+            <textarea name="description" maxlength="2000" rows="5" cols="40">{{item.description}}</textarea>
+            {% else %}
             <textarea name="description" maxlength="2000" rows="5" cols="40"></textarea>
+            {% endif %}
             <p>Category:</p>
             <select name="category" form="newitem">
                 <option value="">(Select category)</option>
             {% for c in categories %}
-                {% if c.name|lower == category_name|lower %}
+                {% if item and c.id == item.category|int %}
+                <option value="{{c.id}}" selected>{{c.name}}</option>
+                {% elif not item and c.name|lower == category_name|lower %}
                 <option value="{{c.id}}" selected>{{c.name}}</option>
                 {% else %}
                 <option value="{{c.id}}">{{c.name}}</option>

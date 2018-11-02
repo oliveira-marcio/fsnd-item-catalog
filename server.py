@@ -61,14 +61,31 @@ def showItem(category_name, item_name):
             methods=["GET", "POST"])
 @app.route("/catalog/<category_name>/new", methods=["GET", "POST"])
 def addItem(category_name):
-    if request.method == "POST":
-        flash("New item created")
-        if category_name:
-            return redirect(url_for("showAllItems", category_name = category_name))
-        else:
-            return redirect(url_for("showCatalog"))
-
     categories = session.query(Categories).order_by(Categories.name).all()
+
+    if request.method == "POST":
+        if request.form['title'] \
+        and request.form['description'] \
+        and request.form['category']:
+            # TODO: Usar ID real do usuário logado
+            itemToAdd = Items(title=request.form['title'],
+                            description=request.form['description'],
+                            category_id=request.form['category'],
+                            user_id=1)
+            session.add(itemToAdd)
+            session.commit()
+            flash("New item created")
+            if category_name:
+                return redirect(url_for("showAllItems",
+                                        category_name = category_name))
+            else:
+                return redirect(url_for("showCatalog"))
+        else:
+            flash("There is missing data")
+            return render_template("newitem.html",
+                                    category_name = category_name,
+                                    categories = categories,
+                                    item = request.form.to_dict())
 
     if category_name:
         category = session.query(Categories) \
@@ -180,7 +197,8 @@ def showLatestItemsJSON():
 
 def getCategoryEntry(category):
     category_entry = {"name": category.name}
-    items = session.query(Items.title, Items.description, Users.name.label("creator")) \
+    items = session \
+        .query(Items.title, Items.description, Users.name.label("creator")) \
         .join(Items.user) \
         .filter(Items.category_id == category.id) \
         .order_by(Items.title) \
