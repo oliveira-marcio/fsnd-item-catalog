@@ -4,6 +4,7 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.exc import IntegrityError
 from database_setup import Base, Categories, Items, Users
 import random, string
 
@@ -72,14 +73,23 @@ def addItem(category_name):
                             description=request.form['description'],
                             category_id=request.form['category'],
                             user_id=1)
-            session.add(itemToAdd)
-            session.commit()
-            flash("New item created")
-            if category_name:
-                return redirect(url_for("showAllItems",
-                                        category_name = category_name))
-            else:
-                return redirect(url_for("showCatalog"))
+            try:
+                session.add(itemToAdd)
+                session.commit()
+                flash("New item created")
+                if category_name:
+                    return redirect(url_for("showAllItems",
+                                            category_name = category_name))
+                else:
+                    return redirect(url_for("showCatalog"))
+            except IntegrityError:
+                session.rollback()
+                flash("Item '%s' already exists in selected category." %
+                    request.form['title'])
+                return render_template("newitem.html",
+                                        category_name = category_name,
+                                        categories = categories,
+                                        item = request.form.to_dict())
         else:
             flash("There is missing data")
             return render_template("newitem.html",
