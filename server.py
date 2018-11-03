@@ -124,13 +124,15 @@ def editItem(category_name, item_name):
 
 @app.route("/catalog/<category_name>/<item_name>/delete", methods=["GET", "POST"])
 def deleteItem(category_name, item_name):
-    if request.method == "POST":
-        flash("Item deleted")
-        return redirect(url_for("showAllItems", category_name = category_name))
-
     item, return_value = checkCategoryAndItem(category_name, item_name)
 
     if item:
+        if request.method == "POST":
+            session.delete(item)
+            session.commit()
+            flash("Item deleted")
+            return redirect(url_for("showAllItems", category_name = category_name))
+
         categories = session.query(Categories).order_by(Categories.name).all()
         return render_template("deleteitem.html", category_name = category_name,
                                 item = item)
