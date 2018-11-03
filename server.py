@@ -65,62 +65,93 @@ def addItem(category_name):
     categories = session.query(Categories).order_by(Categories.name).all()
 
     if request.method == "POST":
-        if request.form['title'] \
-        and request.form['description'] \
-        and request.form['category']:
-            # TODO: Usar ID real do usuário logado
-            itemToAdd = Items(title=request.form['title'],
-                            description=request.form['description'],
-                            category_id=request.form['category'],
-                            user_id=1)
-            try:
-                session.add(itemToAdd)
-                session.commit()
-                flash("New item created")
-                if category_name:
-                    return redirect(url_for("showAllItems",
-                                            category_name = category_name))
-                else:
-                    return redirect(url_for("showCatalog"))
-            except IntegrityError:
-                session.rollback()
-                flash("Item '%s' already exists in selected category." %
-                    request.form['title'])
-                return render_template("newitem.html",
-                                        category_name = category_name,
-                                        categories = categories,
-                                        item = request.form.to_dict())
-        else:
-            flash("There is missing data")
-            return render_template("newitem.html",
-                                    category_name = category_name,
-                                    categories = categories,
-                                    item = request.form.to_dict())
+        return doDatabaseWrite(categories, category_name, request.form.to_dict())
 
+    # Necessário espeficar um objeto item para o template
+    item = {}
     if category_name:
         category = session.query(Categories) \
             .filter(Categories.name.ilike(category_name.lower())) \
             .first()
         if not category:
             return redirect(url_for("addItem"))
-    return render_template("newitem.html", category_name = category_name,
-                            categories = categories)
+        item["category_id"] = category.id
+
+    return render_template("newitem.html",
+                            item = item,
+                            categories = categories,
+                            previous_category = category_name)
 
 @app.route("/catalog/<category_name>/<item_name>/edit", methods=["GET", "POST"])
 def editItem(category_name, item_name):
-    if request.method == "POST":
-        flash("Item edited")
-        return redirect(url_for("showItem", category_name = category_name,
-                                item_name = item_name))
-
     item, return_value = checkCategoryAndItem(category_name, item_name)
 
     if item:
         categories = session.query(Categories).order_by(Categories.name).all()
-        return render_template("edititem.html", category_name = category_name,
-                                categories = categories, item = item)
+        if request.method == "POST":
+            return doDatabaseWrite(categories, category_name, request.form.to_dict(), item)
+
+        return render_template("edititem.html",
+                                previous_category = category_name,
+                                previous_item = item.title,
+                                categories = categories,
+                                item = item)
     else:
         return return_value
+
+def doDatabaseWrite(categories, previous_category, user_data, item = None):
+    if item:
+        form_name = "edititem.html"
+        message = "Item edited"
+        isInsert = False
+    else:
+        # TODO: Usar ID real do usuário logado
+        item = Items(title = None,
+                    description = None,
+                    category_id = None,
+                    user_id = 1)
+        form_name = "newitem.html"
+        message = "New item created"
+        isInsert = True
+
+    if user_data["title"] \
+    and user_data["description"] \
+    and user_data["category_id"]:
+        item.title = user_data["title"]
+        item.description = user_data["description"]
+        item.category_id = user_data["category_id"]
+
+        try:
+            session.add(item)
+            session.commit()
+            flash(message)
+
+            category_name = session.query(Categories) \
+                .filter_by(id = user_data["category_id"]) \
+                .first().name
+
+            if isInsert:
+                return redirect(url_for("showAllItems",
+                                        category_name = category_name))
+            else:
+                return redirect(url_for("showItem", category_name = category_name,
+                                        item_name = user_data["title"]))
+        except IntegrityError:
+            session.rollback()
+            flash("Item '%s' already exists in selected category." %
+                user_data["title"])
+            return render_template(form_name,
+                                    categories = categories,
+                                    item = user_data,
+                                    previous_category = previous_category,
+                                    previous_item = item.title)
+    else:
+        flash("There is missing data")
+        return render_template(form_name,
+                                categories = categories,
+                                item = user_data,
+                                previous_category = previous_category,
+                                previous_item = item.title)
 
 @app.route("/catalog/<category_name>/<item_name>/delete", methods=["GET", "POST"])
 def deleteItem(category_name, item_name):

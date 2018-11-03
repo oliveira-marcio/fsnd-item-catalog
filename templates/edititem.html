@@ -5,16 +5,27 @@
     </head>
     <body>
         <header><h1>Edit Item</h1></header>
-        <form id="edititem" action="{{url_for('editItem', category_name = category_name|lower, item_name = item.title|lower)}}" method = 'POST'>
+        <div>
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+            <ul>
+                {% for message in messages %}
+                <li> <strong> {{ message }} </strong> </li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+        {% endwith %}
+        </div>
+        <form id="edititem" action="{{url_for('editItem', category_name = previous_category|lower, item_name = previous_item|lower)}}" method = 'POST'>
             <p>Title:</p>
             <input type="text" size="30" name="title" value="{{item.title}}">
             <p>Description:</p>
             <textarea name="description" maxlength="2000" rows="5" cols="40">{{item.description}}</textarea>
             <p>Category:</p>
-            <select name="category" form="edititem">
+            <select name="category_id" form="edititem">
                 <option value="">(Select category)</option>
             {% for c in categories %}
-                {% if c.id == item.category_id %}
+                {% if c.id == item.category_id|int %}
                 <option value="{{c.id}}" selected>{{c.name}}</option>
                 {% else %}
                 <option value="{{c.id}}">{{c.name}}</option>
@@ -24,6 +35,6 @@
             <br><br>
             <input type='submit' value='Edit'>
         </form>
-        <p><a href="{{url_for('showItem', category_name = category_name|lower, item_name = item.title|lower)}}">Cancelar</a></p>
+        <p><a href="{{url_for('showItem', category_name = previous_category|lower, item_name = previous_item|lower)}}">Cancelar</a></p>
     </body>
 </html>

@@ -16,30 +16,20 @@
             {% endif %}
         {% endwith %}
         </div>
-        {% if category_name %}
-        <form id="newitem" action="{{url_for('addItem', category_name = category_name|lower)}}" method = 'POST'>
+        {% if previous_category %}
+        <form id="newitem" action="{{url_for('addItem', category_name = previous_category|lower)}}" method = 'POST'>
         {% else %}
         <form id="newitem" action="{{url_for('addItem')}}" method = 'POST'>
         {% endif %}
             <p>Title:</p>
-            {% if item %}
             <input type="text" size="30" name="title" value="{{item.title}}">
-            {% else %}
-            <input type="text" size="30" name="title">
-            {% endif %}
             <p>Description:</p>
-            {% if item %}
             <textarea name="description" maxlength="2000" rows="5" cols="40">{{item.description}}</textarea>
-            {% else %}
-            <textarea name="description" maxlength="2000" rows="5" cols="40"></textarea>
-            {% endif %}
             <p>Category:</p>
-            <select name="category" form="newitem">
+            <select name="category_id" form="newitem">
                 <option value="">(Select category)</option>
             {% for c in categories %}
-                {% if item and c.id == item.category|int %}
-                <option value="{{c.id}}" selected>{{c.name}}</option>
-                {% elif not item and c.name|lower == category_name|lower %}
+                {% if item.category_id and c.id == item.category_id|int %}
                 <option value="{{c.id}}" selected>{{c.name}}</option>
                 {% else %}
                 <option value="{{c.id}}">{{c.name}}</option>
@@ -49,8 +39,8 @@
             <br><br>
             <input type='submit' value='Create'>
         </form>
-        {% if category_name %}
-        <p><a href="{{url_for('showAllItems', category_name = category_name|lower)}}">Cancelar</a></p>
+        {% if previous_category %}
+        <p><a href="{{url_for('showAllItems', category_name = previous_category|lower)}}">Cancelar</a></p>
         {% else %}
         <p><a href="{{url_for('showCatalog')}}">Cancelar</a></p>
         {% endif %}
