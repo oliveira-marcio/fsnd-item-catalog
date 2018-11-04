@@ -32,8 +32,8 @@ for r in results:
 
 users = [
     {
-        "name": "Márcio Oliveira",
-        "email": "djmso2000@gmail.com"
+        "name": "Lucas Oliveira",
+        "email": "arrudadeoliveiralucas@gmail.com"
     },
     {
         "name": "Vanele Arruda",
