@@ -1,21 +1,6 @@
-<!DOCTYPE html>
-<html>
-    <head>
-         <meta charset="utf-8">
-    </head>
-    <body>
-        <header><h1>New Item</h1></header>
-        <div>
-        {% with messages = get_flashed_messages() %}
-            {% if messages %}
-            <ul>
-                {% for message in messages %}
-                <li> <strong> {{ message }} </strong> </li>
-                {% endfor %}
-            </ul>
-            {% endif %}
-        {% endwith %}
-        </div>
+{% extends "main.html" %}
+{% block content %}
+        <h1>New Item</h1>
         {% if previous_category %}
         <form id="newitem" action="{{url_for('addItem', category_name = previous_category|lower)}}" method = 'POST'>
         {% else %}
@@ -44,5 +29,4 @@
         {% else %}
         <p><a href="{{url_for('showCatalog')}}">Cancelar</a></p>
         {% endif %}
-    </body>
-</html>
+{% endblock %}

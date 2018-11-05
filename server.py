@@ -49,7 +49,7 @@ def showCatalog():
         .limit(MAX_RESULTS) \
         .all()
     if "username" not in login_session:
-        return render_template("publiccatalog.html", categories = categories,
+        return render_template("public_catalog.html", categories = categories,
                                 items = items, category_name = None)
     else:
         return render_template("catalog.html", categories = categories,
@@ -72,7 +72,7 @@ def showAllItems(category_name):
         .all()
 
     if "username" not in login_session:
-        return render_template("publiccatalog.html", categories = categories,
+        return render_template("public_catalog.html", categories = categories,
                                 items = items, category_name = category.name)
     else:
         return render_template("catalog.html", categories = categories,
