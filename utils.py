@@ -12,9 +12,9 @@ import requests
 CLIENT_ID = json.loads(
     open("client_secrets.json", "r").read())["web"]["client_id"]
 
-def doGoogleSignIn(db_session):
+def doGoogleSignIn(app, db_session):
     # Validate state token
-    if request.args.get("state") != login_session["state"]:
+    if request.args.get("state") != app.config["SECRET_KEY"]:
         response = make_response(json.dumps("Invalid state parameter."), 401)
         response.headers["Content-Type"] = "application/json"
         return response

@@ -7,12 +7,11 @@
   <body>
     <header><h1>Item Catalog</h1></header>
     <p>
-      {% if 'username' not in session %}
-      <a href="{{url_for('showLogin')}}">Click Here to Login</a>
+      {% if "username" not in session %}
+      <button id="loginBtn">Login</button>
       {% else %}
-      <a href="{{url_for('disconnect')}}">Logout</a>
+      <button id="loginBtn">Logout</button>
       {% endif %}
-      &nbsp;&nbsp;<button id="myBtn">Open Modal</button>
     </p>
 
     <div>
@@ -34,22 +33,25 @@
 			{% endblock %}
 		</div>
 
-    <div id="myModal" class="modal">
+    <div id="loginModal" class="modal">
       <div class="modal-content">
         <span class="close">&times;</span>
-        <p>Some text in the Modal..</p>
+        <p>{% include "login.html" %}</p>
       </div>
     </div>
 
     <script>
-      var modal = document.getElementById('myModal');
-      var btn = document.getElementById("myBtn");
+      var modal = document.getElementById("loginModal");
+      var btn = document.getElementById("loginBtn");
       var span = document.getElementsByClassName("close")[0];
 
       btn.onclick = function() {
+        {% if "username" not in session %}
         modal.style.display = "block";
+        {% else %}
+        document.location.href="{{url_for("disconnect")}}";
+        {% endif %}
       }
-
       span.onclick = function() {
         modal.style.display = "none";
       }

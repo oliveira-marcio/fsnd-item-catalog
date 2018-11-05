@@ -18,16 +18,9 @@ Base.metadata.bind = engine
 DBSession = sessionmaker(bind=engine)
 session = DBSession()
 
-@app.route("/login")
-def showLogin():
-    state = app.config["SECRET_KEY"]
-    login_session["state"] = state
-    # TODO: Passar a página atual para retorno após login
-    return render_template("login.html", STATE=state, CLIENT_ID = CLIENT_ID)
-
 @app.route("/gconnect", methods=["POST"])
 def gconnect():
-    return doGoogleSignIn(session)
+    return doGoogleSignIn(app, session)
 
 @app.route("/gdisconnect")
 def gdisconnect():
@@ -48,9 +41,12 @@ def showCatalog():
         .order_by(Items.id.desc()) \
         .limit(MAX_RESULTS) \
         .all()
+
     if "username" not in login_session:
         return render_template("public_catalog.html", categories = categories,
-                                items = items, category_name = None)
+                                items = items, category_name = None,
+                                STATE = app.config["SECRET_KEY"],
+                                CLIENT_ID = CLIENT_ID)
     else:
         return render_template("catalog.html", categories = categories,
                                 items = items, category_name = None)
@@ -73,7 +69,9 @@ def showAllItems(category_name):
 
     if "username" not in login_session:
         return render_template("public_catalog.html", categories = categories,
-                                items = items, category_name = category.name)
+                                items = items, category_name = category.name,
+                                STATE = app.config["SECRET_KEY"],
+                                CLIENT_ID = CLIENT_ID)
     else:
         return render_template("catalog.html", categories = categories,
                                 items = items, category_name = category.name)
@@ -83,8 +81,14 @@ def showItem(category_name, item_name):
     item, return_value = checkCategoryAndItem(category_name, item_name)
 
     if item:
-        return render_template("item.html", category_name = category_name,
-                                item = item)
+        if "username" not in login_session:
+            return render_template("public_item.html", category_name = category_name,
+                                    item = item,
+                                    STATE = app.config["SECRET_KEY"],
+                                    CLIENT_ID = CLIENT_ID)
+        else:
+            return render_template("item.html", category_name = category_name,
+                                    item = item)
     else:
         return return_value
 

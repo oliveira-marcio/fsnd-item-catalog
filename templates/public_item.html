@@ -1,0 +1,8 @@
+{% extends "main.html" %}
+{% block content %}
+        <p><a href="{{url_for('showAllItems', category_name = category_name|lower)}}">{{category_name}}</a></p>
+        <div>
+            <h3>{{item.title}}</h3>
+            <p>Description: {{item.description}}</p>
+        </div>
+{% endblock %}
