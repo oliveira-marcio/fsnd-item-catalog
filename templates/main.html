@@ -3,6 +3,7 @@
   <head>
     <meta charset="utf-8">
     <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles.css') }}">
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
   </head>
   <body>
     <header><h1>Item Catalog</h1></header>
@@ -37,30 +38,45 @@
       <div class="modal-content">
         <span class="close">&times;</span>
         {% if "username" not in session %}
-        <p>{% include "login.html" %}</p>
+        <script>
+          function redirect_page(message){
+            $("#result").html(message)
+            setTimeout(function() {
+              {% if routeCallBack == "showAllItems" %}
+              window.location.href = "{{url_for(routeCallBack, category_name = category_name|lower)}}";
+              {% elif routeCallBack == "showItem" %}
+              window.location.href = "{{url_for(routeCallBack, category_name = category_name|lower, item_name = item.title|lower)}}";
+              {% else %}
+              window.location.href = "{{url_for(routeCallBack)}}";
+              {% endif %}
+            }, 4000);
+          }
+        </script>
+
+        <div id="result">
+          <p>{% include "g_login.html" %}</p>
+          <p>{% include "fb_login.html" %}</p>
+        </div>
         {% endif %}
       </div>
     </div>
 
     <script>
-      var modal = document.getElementById("loginModal");
-      var btn = document.getElementById("loginBtn");
-      var span = document.getElementsByClassName("close")[0];
-
-      btn.onclick = function() {
+      $("#loginBtn").on("click", function() {
         {% if "username" not in session %}
-        modal.style.display = "block";
+        $("#loginModal").attr("style", "display: block");
         {% else %}
         window.location.href="{{url_for('disconnect')}}";
         {% endif %}
-      }
-      span.onclick = function() {
-        modal.style.display = "none";
-      }
+      });
+
+      $("#loginModal").find(".close").on("click", function() {
+        $("#loginModal").attr("style", "display: none");
+      });
 
       window.onclick = function(event) {
-        if (event.target == modal) {
-          modal.style.display = "none";
+        if (event.target == $("#loginModal")[0]) {
+          $("#loginModal").attr("style", "display: none");
         }
       }
     </script>

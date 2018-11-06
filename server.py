@@ -8,7 +8,8 @@ from sqlalchemy.exc import IntegrityError
 from models import Base, Categories, Items, Users
 from flask import session as login_session
 from utils import CLIENT_ID, doGoogleSignIn, doGoogleSignOut, \
-                doDisconnect, getSecretKey, getUserInfo
+                doFacebookSignIn, doFacebookSignOut, doDisconnect, \
+                getSecretKey, getUserInfo
 
 app = Flask(__name__)
 
@@ -26,6 +27,14 @@ def gconnect():
 @app.route("/gdisconnect")
 def gdisconnect():
     return doGoogleSignOut()
+
+@app.route("/fbconnect", methods=["POST"])
+def fbconnect():
+    return doFacebookSignIn(app, session)
+
+@app.route("/fbdisconnect")
+def fbdisconnect():
+    return doFacebookSignOut()
 
 @app.route("/disconnect")
 def disconnect():

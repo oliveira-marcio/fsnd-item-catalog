@@ -1,16 +1,9 @@
-<!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="utf-8">
-    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
     <script src="//apis.google.com/js/platform.js?onload=start"></script>
-  </head>
 
-  <body>
     <div id="signinButton">
       <span class="g-signin"
         data-scope="openid email"
-        data-clientid="{{CLIENT_ID}}"
+        data-clientid="{{CLIENT_ID.google}}"
         data-redirecturi="postmessage"
         data-accesstype="offline"
         data-cookiepolicy="single_host_origin"
@@ -19,22 +12,7 @@
       </span>
     </div>
 
-    <div id="result"></div>
-
     <script>
-      function redirect_page(message){
-        $("#result").html(message)
-        setTimeout(function() {
-          {% if routeCallBack == "showAllItems" %}
-          window.location.href = "{{url_for(routeCallBack, category_name = category_name|lower)}}";
-          {% elif routeCallBack == "showItem" %}
-          window.location.href = "{{url_for(routeCallBack, category_name = category_name|lower, item_name = item.title|lower)}}";
-          {% else %}
-          window.location.href = "{{url_for(routeCallBack)}}";
-          {% endif %}
-        }, 4000);
-      }
-
       function signInCallback(authResult) {
         if (authResult["code"]) {
           // Hide the sign-in button now that the user is authorized
@@ -61,10 +39,8 @@
             },
             error: function(result) {
               redirect_page(`Error during authentication:</br>${result}</br></br>Try again later.</br></br>Redirecting...`);
-           }
+            }
           });
         }
       }
     </script>
-  </body>
-</html>
