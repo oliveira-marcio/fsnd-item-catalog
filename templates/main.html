@@ -49,7 +49,7 @@
         {% if "username" not in session %}
         modal.style.display = "block";
         {% else %}
-        document.location.href="{{url_for("disconnect")}}";
+        window.location.href="{{url_for('disconnect')}}";
         {% endif %}
       }
       span.onclick = function() {

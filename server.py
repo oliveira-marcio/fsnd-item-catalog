@@ -28,7 +28,6 @@ def gdisconnect():
 
 @app.route("/disconnect")
 def disconnect():
-    # TODO: Retornar para a página atual após logout
     return doDisconnect(redirect(url_for("showCatalog")))
 
 @app.route("/")
@@ -46,10 +45,12 @@ def showCatalog():
         return render_template("public_catalog.html", categories = categories,
                                 items = items, category_name = None,
                                 STATE = app.config["SECRET_KEY"],
-                                CLIENT_ID = CLIENT_ID)
+                                CLIENT_ID = CLIENT_ID,
+                                routeCallBack = "showCatalog")
     else:
         return render_template("catalog.html", categories = categories,
-                                items = items, category_name = None)
+                                items = items, category_name = None,
+                                routeCallBack = "showCatalog")
 
 @app.route("/catalog/<category_name>")
 @app.route("/catalog/<category_name>/items")
@@ -71,24 +72,28 @@ def showAllItems(category_name):
         return render_template("public_catalog.html", categories = categories,
                                 items = items, category_name = category.name,
                                 STATE = app.config["SECRET_KEY"],
-                                CLIENT_ID = CLIENT_ID)
+                                CLIENT_ID = CLIENT_ID,
+                                routeCallBack = "showAllItems")
     else:
         return render_template("catalog.html", categories = categories,
-                                items = items, category_name = category.name)
+                                items = items, category_name = category.name,
+                                routeCallBack = "showAllItems")
 
 @app.route("/catalog/<category_name>/<item_name>")
 def showItem(category_name, item_name):
     item, return_value = checkCategoryAndItem(category_name, item_name)
 
     if item:
+        # TODO: Checar se o usuário é o criador do item para poder editar/deletar
         if "username" not in login_session:
             return render_template("public_item.html", category_name = category_name,
                                     item = item,
                                     STATE = app.config["SECRET_KEY"],
-                                    CLIENT_ID = CLIENT_ID)
+                                    CLIENT_ID = CLIENT_ID,
+                                    routeCallBack = "showItem")
         else:
             return render_template("item.html", category_name = category_name,
-                                    item = item)
+                                    item = item, routeCallBack = "showItem")
     else:
         return return_value
 
@@ -96,6 +101,7 @@ def showItem(category_name, item_name):
             methods=["GET", "POST"])
 @app.route("/catalog/<category_name>/new", methods=["GET", "POST"])
 def addItem(category_name):
+    # TODO: Checar se o usuário está autenticado para poder criar
     categories = session.query(Categories).order_by(Categories.name).all()
 
     if request.method == "POST":
@@ -118,6 +124,7 @@ def addItem(category_name):
 
 @app.route("/catalog/<category_name>/<item_name>/edit", methods=["GET", "POST"])
 def editItem(category_name, item_name):
+    # TODO: Checar se o usuário está autenticado para poder editar
     item, return_value = checkCategoryAndItem(category_name, item_name)
 
     if item:
@@ -189,6 +196,7 @@ def doDatabaseWrite(categories, previous_category, user_data, item = None):
 
 @app.route("/catalog/<category_name>/<item_name>/delete", methods=["GET", "POST"])
 def deleteItem(category_name, item_name):
+    # TODO: Checar se o usuário está autenticado para poder deletar
     item, return_value = checkCategoryAndItem(category_name, item_name)
 
     if item:

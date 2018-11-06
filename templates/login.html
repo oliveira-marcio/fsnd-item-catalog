@@ -47,7 +47,13 @@
 
               $("#result").html(message)
               setTimeout(function() {
-                window.location.href = "/catalog";
+                {% if routeCallBack == "showAllItems" %}
+                window.location.href = "{{url_for(routeCallBack, category_name = category_name|lower)}}";
+                {% elif routeCallBack == "showItem" %}
+                window.location.href = "{{url_for(routeCallBack, category_name = category_name|lower, item_name = item.title|lower)}}";
+                {% else %}
+                window.location.href = "{{url_for(routeCallBack)}}";
+                {% endif %}
               }, 4000);
             }
           });
