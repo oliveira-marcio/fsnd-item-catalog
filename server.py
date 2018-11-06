@@ -7,7 +7,8 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import IntegrityError
 from models import Base, Categories, Items, Users
 from flask import session as login_session
-from utils import CLIENT_ID, doGoogleSignIn, doGoogleSignOut, doDisconnect, getSecretKey
+from utils import CLIENT_ID, doGoogleSignIn, doGoogleSignOut, \
+                doDisconnect, getSecretKey, getUserInfo
 
 app = Flask(__name__)
 
@@ -84,8 +85,8 @@ def showItem(category_name, item_name):
     item, return_value = checkCategoryAndItem(category_name, item_name)
 
     if item:
-        # TODO: Checar se o usuário é o criador do item para poder editar/deletar
-        if "username" not in login_session:
+        creator = getUserInfo(item.user_id, session)
+        if "username" not in login_session or creator.id != login_session['user_id']:
             return render_template("public_item.html", category_name = category_name,
                                     item = item,
                                     STATE = app.config["SECRET_KEY"],
@@ -101,7 +102,13 @@ def showItem(category_name, item_name):
             methods=["GET", "POST"])
 @app.route("/catalog/<category_name>/new", methods=["GET", "POST"])
 def addItem(category_name):
-    # TODO: Checar se o usuário está autenticado para poder criar
+    if 'username' not in login_session:
+        flash("You need to sign in first to create new items.")
+        if category_name:
+            return redirect(url_for("showAllItems",
+                                    category_name = category_name))
+        return redirect(url_for("showCatalog"))
+
     categories = session.query(Categories).order_by(Categories.name).all()
 
     if request.method == "POST":
@@ -124,10 +131,19 @@ def addItem(category_name):
 
 @app.route("/catalog/<category_name>/<item_name>/edit", methods=["GET", "POST"])
 def editItem(category_name, item_name):
-    # TODO: Checar se o usuário está autenticado para poder editar
+    if 'username' not in login_session:
+        flash("You need to sign in first to edit items.")
+        return redirect(url_for("showItem", category_name = category_name,
+                                item_name = item_name))
+
     item, return_value = checkCategoryAndItem(category_name, item_name)
 
     if item:
+        if item.user_id != login_session['user_id']:
+            flash("You can only edit your own items.")
+            return redirect(url_for("showItem", category_name = category_name,
+                                    item_name = item_name))
+
         categories = session.query(Categories).order_by(Categories.name).all()
         if request.method == "POST":
             return doDatabaseWrite(categories, category_name, request.form.to_dict(), item)
@@ -146,11 +162,10 @@ def doDatabaseWrite(categories, previous_category, user_data, item = None):
         message = "Item edited"
         isInsert = False
     else:
-        # TODO: Usar ID real do usuário logado
         item = Items(title = None,
                     description = None,
                     category_id = None,
-                    user_id = 1)
+                    user_id = login_session['user_id'])
         form_name = "newitem.html"
         message = "New item created"
         isInsert = True
@@ -196,10 +211,19 @@ def doDatabaseWrite(categories, previous_category, user_data, item = None):
 
 @app.route("/catalog/<category_name>/<item_name>/delete", methods=["GET", "POST"])
 def deleteItem(category_name, item_name):
-    # TODO: Checar se o usuário está autenticado para poder deletar
+    if 'username' not in login_session:
+        flash("You need to sign in first to delete items.")
+        return redirect(url_for("showItem", category_name = category_name,
+                                item_name = item_name))
+
     item, return_value = checkCategoryAndItem(category_name, item_name)
 
     if item:
+        if item.user_id != login_session['user_id']:
+            flash("You can only delete your own items.")
+            return redirect(url_for("showItem", category_name = category_name,
+                                    item_name = item_name))
+
         if request.method == "POST":
             session.delete(item)
             session.commit()

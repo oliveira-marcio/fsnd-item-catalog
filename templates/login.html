@@ -22,6 +22,19 @@
     <div id="result"></div>
 
     <script>
+      function redirect_page(message){
+        $("#result").html(message)
+        setTimeout(function() {
+          {% if routeCallBack == "showAllItems" %}
+          window.location.href = "{{url_for(routeCallBack, category_name = category_name|lower)}}";
+          {% elif routeCallBack == "showItem" %}
+          window.location.href = "{{url_for(routeCallBack, category_name = category_name|lower, item_name = item.title|lower)}}";
+          {% else %}
+          window.location.href = "{{url_for(routeCallBack)}}";
+          {% endif %}
+        }, 4000);
+      }
+
       function signInCallback(authResult) {
         if (authResult["code"]) {
           // Hide the sign-in button now that the user is authorized
@@ -44,18 +57,11 @@
               } else {
                 message = "Failed to make a server-side call. Check your configuration and console.</br></br>Redirecting...";
               }
-
-              $("#result").html(message)
-              setTimeout(function() {
-                {% if routeCallBack == "showAllItems" %}
-                window.location.href = "{{url_for(routeCallBack, category_name = category_name|lower)}}";
-                {% elif routeCallBack == "showItem" %}
-                window.location.href = "{{url_for(routeCallBack, category_name = category_name|lower, item_name = item.title|lower)}}";
-                {% else %}
-                window.location.href = "{{url_for(routeCallBack)}}";
-                {% endif %}
-              }, 4000);
-            }
+              redirect_page(message);
+            },
+            error: function(result) {
+              redirect_page(`Error during authentication:</br>${result}</br></br>Try again later.</br></br>Redirecting...`);
+           }
           });
         }
       }

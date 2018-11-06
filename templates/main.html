@@ -36,7 +36,9 @@
     <div id="loginModal" class="modal">
       <div class="modal-content">
         <span class="close">&times;</span>
+        {% if "username" not in session %}
         <p>{% include "login.html" %}</p>
+        {% endif %}
       </div>
     </div>
 
