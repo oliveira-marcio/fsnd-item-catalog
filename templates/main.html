@@ -15,6 +15,11 @@
           {% if "username" not in session %}
           <button id="loginBtn">Login</button>
           {% else %}
+            {% if "picture" not in session %}
+          <img class="circular-image" src="/static/blank_user.gif" alt="{{session.username}}" title="{{session.username}}">
+            {% else %}
+          <img class="circular-image" src="{{session.picture}}" alt="{{session.username}}" title="{{session.username}}">
+            {% endif %}
           <button id="loginBtn">Logout</button>
           {% endif %}
         </div>
@@ -33,7 +38,6 @@
       </div>
 
       <div class="content-container">
-        <a href="{{url_for('showCatalog')}}">Home</a>
   			{% block content %}
   			{% endblock %}
   		</div>

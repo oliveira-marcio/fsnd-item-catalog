@@ -1,8 +1,8 @@
 {% extends "public_catalog.html" %}
 {% block private_content %}
         {% if category_name %}
-            <h4><a href="{{url_for('addItem', category_name = category_name|lower)}}">New Item</a></h4>
+            <a class="link" href="{{url_for('addItem', category_name = category_name|lower)}}">New Item</a>
         {% else %}
-            <h4><a href="{{url_for('addItem')}}">New Item</a></h4>
+            <a class="link" href="{{url_for('addItem')}}">New Item</a>
         {% endif %}
 {% endblock %}
