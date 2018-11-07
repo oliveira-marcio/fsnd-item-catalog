@@ -22,6 +22,8 @@ DBSession = sessionmaker(bind=engine)
 session = DBSession()
 
 
+# Endpoints para autenticação
+
 @app.route("/gconnect", methods=["POST"])
 def gconnect():
     return doGoogleSignIn(app, session)
@@ -47,9 +49,15 @@ def disconnect():
     return doDisconnect(redirect(url_for("showCatalog")))
 
 
+# Endpoints para navegação no catálogo
+
 @app.route("/")
 @app.route("/catalog")
 def showCatalog():
+    """
+    Exibe todo o catálogo e exibe link para adicionar itens se o usuário
+    estiver autenticado. O itens mais recentes estão limitados aos 10 últimos.
+    """
     MAX_RESULTS = 10
     categories = session.query(Categories).order_by(Categories.name).all()
     items = session.query(Items.title, Categories.name.label("category_name"))\
@@ -73,6 +81,11 @@ def showCatalog():
 @app.route("/catalog/<category_name>")
 @app.route("/catalog/<category_name>/items")
 def showAllItems(category_name):
+    """
+    Exibe todos os itens da categoria informada e exibe link para adicionar
+    itens se o usuário estiver autenticado. Se a categoria não existir é
+    gerado um erro e a página principal é exibida em seu lugar.
+    """
     categories = session.query(Categories).order_by(Categories.name).all()
     category = session.query(Categories) \
         .filter(Categories.name.ilike(category_name.lower())) \
@@ -100,6 +113,13 @@ def showAllItems(category_name):
 
 @app.route("/catalog/<category_name>/<item_name>")
 def showItem(category_name, item_name):
+    """
+    Exibe os detalhes do item informado e exibe link para editar e excluir o
+    mesmo se o usuário estiver autenticado e for o criador. Se o item não
+    existir na categoria informada, é gerado um erro e a página da categoria é
+    exibida em seu lugar. Se a categoria não existir é
+    gerado um erro e a página principal é exibida em seu lugar.
+    """
     item, return_value = checkCategoryAndItem(category_name, item_name)
 
     if item:
@@ -124,6 +144,19 @@ def showItem(category_name, item_name):
            methods=["GET", "POST"])
 @app.route("/catalog/<category_name>/new", methods=["GET", "POST"])
 def addItem(category_name):
+    """
+    Quando o método é GET:
+    Exibe o formulário de inclusão de um item. Se uma categoria for informada,
+    o formulário é exibido com a categoria já selecionada.
+
+    Quando o método é POST:
+    Faz a inclusão do item no banco de dados se todos os campos estiverem
+    preenchidos no formulário. Caso contrário, retorna o formulário para o
+    usuário preencher os campos ausentes.
+
+    Em ambos os métodos, é necessário que o usuário esteja autenticado. Caso
+    contrário será exibido um erro e o app retornará para a página principal
+    """
     if 'username' not in login_session:
         flash("You need to sign in first to create new items.")
         if category_name:
@@ -156,6 +189,21 @@ def addItem(category_name):
 @app.route("/catalog/<category_name>/<item_name>/edit",
            methods=["GET", "POST"])
 def editItem(category_name, item_name):
+    """
+    Quando o método é GET:
+    Exibe o formulário de edição do item informado com os dados do mesmo já
+    preenchidos. Se o item não existir na categoria informada, é gerado um erro
+    e a página da categoria é exibida em seu lugar. Se a categoria não existir
+    é gerado um erro e a página principal é exibida em seu lugar.
+
+    Quando o método é POST:
+    Salva a edição do item no banco de dados se todos os campos estiverem
+    preenchidos no formulário. Caso contrário, retorna o formulário para o
+    usuário preencher os campos ausentes.
+
+    Em ambos os métodos, é necessário que o usuário esteja autenticado. Caso
+    contrário será exibido um erro e o app retornará para a página principal
+    """
     if 'username' not in login_session:
         flash("You need to sign in first to edit items.")
         return redirect(url_for("showItem", category_name=category_name,
@@ -184,6 +232,13 @@ def editItem(category_name, item_name):
 
 
 def doDatabaseWrite(categories, previous_category, user_data, item=None):
+    """
+    Método utilitário que checa se os campos do formulário estão preenchidos
+    antes de salvar o item no banco de dados. Em caso de erro, retorna os
+    redirects e erros correspondente à ação sendo executada (criação ou edição)
+
+    Também checa se um item já existe na categoria informada com o mesmo nome.
+    """
     if item:
         form_name = "edititem.html"
         message = "Item edited"
@@ -241,6 +296,19 @@ def doDatabaseWrite(categories, previous_category, user_data, item=None):
 @app.route("/catalog/<category_name>/<item_name>/delete",
            methods=["GET", "POST"])
 def deleteItem(category_name, item_name):
+    """
+    Quando o método é GET:
+    Exibe a mensagem de confirmação para deleção do item informado. Se o item
+    não existir na categoria informada, é gerado um erro e a página da
+    categoria é exibida em seu lugar. Se a categoria não existir é gerado um
+    erro e a página principal é exibida em seu lugar.
+
+    Quando o método é POST:
+    Remove o item do banco de dados.
+
+    Em ambos os métodos, é necessário que o usuário esteja autenticado. Caso
+    contrário será exibido um erro e o app retornará para a página principal
+    """
     if 'username' not in login_session:
         flash("You need to sign in first to delete items.")
         return redirect(url_for("showItem", category_name=category_name,
@@ -269,6 +337,13 @@ def deleteItem(category_name, item_name):
 
 
 def checkCategoryAndItem(category_name, item_name):
+    """
+    Método utilitário que checa se a categoria informada existe no banco de
+    dados e também checa se o item informado existe na categoria informada.
+
+    Retorna uma tupla com o item encontrado na primeira posição ou com um
+    redirect na segunda posição caso as checagens acima falhem.
+    """
     category = session.query(Categories) \
         .filter(Categories.name.ilike(category_name.lower())) \
         .first()
@@ -293,6 +368,9 @@ def checkCategoryAndItem(category_name, item_name):
 
 @app.route("/catalog.json")
 def showCatalogJSON():
+    """
+    Retorna um JSON com todas as categorias e respectivos itens.
+    """
     categories = session.query(Categories).order_by(Categories.name).all()
 
     categories_list = []
@@ -304,6 +382,10 @@ def showCatalogJSON():
 
 @app.route("/catalog/<category_name>.json")
 def showAllItemsJSON(category_name):
+    """
+    Retorna um JSON com todas os itens da categoria informada.
+    Se a categoria informada não existir, é informado um erro no JSON.
+    """
     category = session.query(Categories) \
         .filter(Categories.name.ilike(category_name.lower())) \
         .first()
@@ -315,6 +397,11 @@ def showAllItemsJSON(category_name):
 
 @app.route("/catalog/latest.json")
 def showLatestItemsJSON():
+    """
+    Retorna um JSON com os últimos itens adicionados e respectivas categorias.
+    A quantidade padrão de itens retornados é 10, mas o usuário pode definir
+    esse valor com um parâmetro 'limit=xx' na URL.
+    """
     max_results = request.args.get("limit")
     if not max_results:
         max_results = 10
@@ -341,6 +428,14 @@ def showLatestItemsJSON():
 
 
 def getCategoryEntry(category):
+    """
+    Método utilitário para retornar uma categoria do banco de dados num
+    dicionário contendo o nome da mesma e respectivos itens dentro de uma
+    lista. Além dos dados dos itens também é informado o nome do usuário
+    criador.
+
+    Os dados correspondentes aos ID's das tabelas do banco não são retornados
+    """
     category_entry = {"name": category.name}
     items = session \
         .query(Items.title, Items.description, Users.name.label("creator")) \

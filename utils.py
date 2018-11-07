@@ -1,3 +1,6 @@
+#!/usr/bin/env python2
+# coding: utf-8
+
 from models import Users
 from flask import session as login_session
 import random
@@ -9,6 +12,20 @@ import json
 from flask import make_response, flash, request
 import requests
 
+"""
+Dados da aplicação cadastrados nas respectivas API's.
+
+GOOGLE
+
+Usa o mesmo arquivo JSON da aplicação disponibilizado no console da API. Basta
+salvá-lo como 'client_secrets.json' na pasta raiz do servidor.
+
+FACEBOOK
+
+Basta criar um arquivo 'fb_client_secrets.json' na pasta raiz do servidor
+informando o id da aplicação cadastrada na API nesse formato:
+{'web':{'client_id':'<INFORMAR_AQUI>'}}
+"""
 CLIENT_ID = {
     "google": json.loads(
         open("client_secrets.json", "r").read())["web"]["client_id"],
@@ -18,6 +35,21 @@ CLIENT_ID = {
 
 
 def doGoogleSignIn(app, db_session):
+    """
+    Método para realizar a autenticação do usuário pela API do Google e obter
+    um token de acesso para acessar os dados do usuário como nome, email e
+    url da foto e salvá-los no banco de dados do app.
+
+    Os dados também ficam salvos na sessão do servidor até o usuário deslogar
+    ou o token expirar.
+
+    Por fim é retornado um conteúdo HTML de confirmação do login para ser
+    exibido para o usuário.
+
+    Créditos para Udacity que disponibilizou esse código durante as aulas do
+    Nanodegree Full Stack Web Developer
+    """
+
     # Validate state token
     if request.args.get("state") != app.config["SECRET_KEY"]:
         response = make_response(json.dumps("Invalid state parameter."), 401)
@@ -110,6 +142,13 @@ def doGoogleSignIn(app, db_session):
 
 
 def doGoogleSignOut():
+    """
+    Método para revogar o token de acesso do usuário na API do Google.
+
+    Créditos para Udacity que disponibilizou esse código durante as aulas do
+    Nanodegree Full Stack Web Developer.
+    """
+
     # Only disconnect a connected user.
     access_token = login_session.get("access_token")
     if access_token is None:
@@ -132,6 +171,21 @@ def doGoogleSignOut():
 
 
 def doFacebookSignIn(app, db_session):
+    """
+    Método para realizar a autenticação do usuário pela API do Facebook e
+    obter um token de acesso para acessar os dados do usuário como nome, email
+    e url da foto e salvá-los no banco de dados do app.
+
+    Os dados também ficam salvos na sessão do servidor até o usuário deslogar
+    ou o token expirar.
+
+    Por fim é retornado um conteúdo HTML de confirmação do login para ser
+    exibido para o usuário.
+
+    Créditos para Udacity que disponibilizou o código original durante as aulas
+    do Nanodegree Full Stack Web Developer e apenas precisei adaptá-lo para as
+    alterações recentes na API.
+    """
     if request.args.get('state') != app.config["SECRET_KEY"]:
         response = make_response(json.dumps('Invalid state parameter.'), 401)
         response.headers['Content-Type'] = 'application/json'
@@ -181,6 +235,13 @@ def doFacebookSignIn(app, db_session):
 
 
 def doFacebookSignOut():
+    """
+    Método para revogar o token de acesso do usuário na API do Facebook.
+
+    Créditos para Udacity que disponibilizou esse código durante as aulas do
+    Nanodegree Full Stack Web Developer.
+    """
+
     facebook_id = login_session['facebook_id']
     # The access token must me included to successfully logout
     access_token = login_session['access_token']
@@ -192,6 +253,10 @@ def doFacebookSignOut():
 
 
 def doDisconnect(url_redirect):
+    """
+    Método para deslogar o usuário no app, revogar os respectivos tokens de
+    acesso das API's e limpar os dados de acesso na sessão do servidor.
+    """
     if "provider" in login_session:
         if login_session["provider"] == "google":
             doGoogleSignOut()
@@ -212,6 +277,9 @@ def doDisconnect(url_redirect):
 
 
 def createUser(login_session, db_session):
+    """
+    Método para criar o usuário no banco de dados e retornar o id do mesmo
+    """
     newUser = Users(name=login_session["username"], email=login_session[
                    "email"], picture=login_session["picture"])
     db_session.add(newUser)
@@ -222,11 +290,19 @@ def createUser(login_session, db_session):
 
 
 def getUserInfo(user_id, db_session):
+    """
+    Método para retornar os dados de um usuário do banco através do id
+    informado
+    """
     user = db_session.query(Users).filter_by(id=user_id).one()
     return user
 
 
 def getUserID(email, db_session):
+    """
+    Método para consultar um usuário no banco de dados através do e-mail.
+    Retorna o id do mesmo se encontrado.
+    """
     try:
         user = db_session.query(Users).filter_by(email=email).one()
         return user.id
@@ -235,5 +311,10 @@ def getUserID(email, db_session):
 
 
 def getSecretKey():
+    """
+    Gera um número aleatório para servir como "secret key" nos processos de
+    obtenção dos tokens de acesso da API. Esse código é mantido durante toda
+    a sessão do usuário.
+    """
     return "".join(random.choice(string.ascii_uppercase + string.digits)
                    for x in xrange(32))
