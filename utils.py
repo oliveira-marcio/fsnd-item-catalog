@@ -16,6 +16,7 @@ CLIENT_ID = {
         open("fb_client_secrets.json", "r").read())["web"]["client_id"]
 }
 
+
 def doGoogleSignIn(app, db_session):
     # Validate state token
     if request.args.get("state") != app.config["SECRET_KEY"]:
@@ -67,8 +68,8 @@ def doGoogleSignIn(app, db_session):
     stored_access_token = login_session.get("access_token")
     stored_gplus_id = login_session.get("gplus_id")
     if stored_access_token is not None and gplus_id == stored_gplus_id:
-        response = make_response(json.dumps("Current user is already connected."),
-                                 200)
+        response = make_response(
+            json.dumps("Current user is already connected."), 200)
         response.headers["Content-Type"] = "application/json"
         return response
 
@@ -101,10 +102,12 @@ def doGoogleSignIn(app, db_session):
     output += "!</h1>"
     output += "<img src='"
     output += login_session["picture"]
-    output += "' style = 'width: 80px; height: 80px;border-radius: 150px;-webkit-border-radius: 150px;-moz-border-radius: 150px;'>"
+    output += """' style = 'width: 80px; height: 80px;border-radius: 150px;
+        -webkit-border-radius: 150px;-moz-border-radius: 150px;'>"""
 
     flash("you are now logged in as %s" % login_session["username"])
     return output
+
 
 def doGoogleSignOut():
     # Only disconnect a connected user.
@@ -122,9 +125,11 @@ def doGoogleSignOut():
         response.headers["Content-Type"] = "application/json"
         return response
     else:
-        response = make_response(json.dumps("Failed to revoke token for given user.", 400))
+        response = make_response(
+            json.dumps("Failed to revoke token for given user.", 400))
         response.headers["Content-Type"] = "application/json"
         return response
+
 
 def doFacebookSignIn(app, db_session):
     if request.args.get('state') != app.config["SECRET_KEY"]:
@@ -137,7 +142,8 @@ def doFacebookSignIn(app, db_session):
     # Use token to get user info from API
     userinfo_url = "https://graph.facebook.com/me"
 
-    url = '%s?access_token=%s&fields=name,id,email,picture' % (userinfo_url, access_token)
+    url = '%s?access_token=%s&fields=name,id,email,picture' % \
+        (userinfo_url, access_token)
     h = httplib2.Http()
     result = h.request(url, 'GET')[1]
     # print "url sent for API access:%s"% url
@@ -160,26 +166,30 @@ def doFacebookSignIn(app, db_session):
         user_id = createUser(login_session, db_session)
     login_session['user_id'] = user_id
 
-    output = ''
-    output += '<h1>Welcome, '
-    output += login_session['username']
+    output = ""
+    output += "<h1>Welcome, "
+    output += login_session["username"]
 
-    output += '!</h1>'
-    output += '<img src="'
-    output += login_session['picture']
-    output += ' " style = "width: 80px; height: 80px;border-radius: 150px;-webkit-border-radius: 150px;-moz-border-radius: 150px;"> '
+    output += "!</h1>"
+    output += "<img src='"
+    output += login_session["picture"]
+    output += """' style = 'width: 80px; height: 80px;border-radius: 150px;
+        -webkit-border-radius: 150px;-moz-border-radius: 150px;'>"""
 
     flash("Now logged in as %s" % login_session['username'])
     return output
+
 
 def doFacebookSignOut():
     facebook_id = login_session['facebook_id']
     # The access token must me included to successfully logout
     access_token = login_session['access_token']
-    url = 'https://graph.facebook.com/%s/permissions?access_token=%s' % (facebook_id,access_token)
+    url = 'https://graph.facebook.com/%s/permissions?access_token=%s' % \
+        (facebook_id, access_token)
     h = httplib2.Http()
     result = h.request(url, 'DELETE')[1]
     return "you have been logged out"
+
 
 def doDisconnect(url_redirect):
     if "provider" in login_session:
@@ -200,12 +210,14 @@ def doDisconnect(url_redirect):
         flash("You were not logged in")
     return url_redirect
 
+
 def createUser(login_session, db_session):
     newUser = Users(name=login_session["username"], email=login_session[
                    "email"], picture=login_session["picture"])
     db_session.add(newUser)
     db_session.commit()
-    user = db_session.query(Users).filter_by(email=login_session["email"]).one()
+    user = db_session.query(Users) \
+                     .filter_by(email=login_session["email"]).one()
     return user.id
 
 
@@ -218,10 +230,10 @@ def getUserID(email, db_session):
     try:
         user = db_session.query(Users).filter_by(email=email).one()
         return user.id
-    except:
+    except NoResultFound, MultipleResultsFound:
         return None
 
+
 def getSecretKey():
-    return "" \
-        .join(random.choice(string.ascii_uppercase + string.digits)
-        for x in xrange(32))
+    return "".join(random.choice(string.ascii_uppercase + string.digits)
+                   for x in xrange(32))

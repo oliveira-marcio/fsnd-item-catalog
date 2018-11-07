@@ -14,11 +14,13 @@ class Users(Base):
     email = Column(String(250), nullable=False)
     picture = Column(String(250))
 
+
 class Categories(Base):
     __tablename__ = "categories"
 
     id = Column(Integer, primary_key=True)
     name = Column(String(100, collation='NOCASE'), nullable=False)
+
 
 class Items(Base):
     __tablename__ = "items"
@@ -34,5 +36,7 @@ class Items(Base):
     user_id = Column(Integer, ForeignKey("users.id"))
     user = relationship(Users)
 
-engine = create_engine("sqlite:///catalog.db", connect_args={"check_same_thread": False})
+
+engine = create_engine("sqlite:///catalog.db",
+                       connect_args={"check_same_thread": False})
 Base.metadata.create_all(engine)
