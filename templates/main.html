@@ -6,79 +6,84 @@
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
   </head>
   <body>
-    <header><h1>Item Catalog</h1></header>
-    <p>
-      {% if "username" not in session %}
-      <button id="loginBtn">Login</button>
-      {% else %}
-      <button id="loginBtn">Logout</button>
-      {% endif %}
-    </p>
-
-    <div>
-    {% with messages = get_flashed_messages() %}
-        {% if messages %}
-        <ul>
-            {% for message in messages %}
-            <li> <strong> {{ message }} </strong> </li>
-            {% endfor %}
-        </ul>
-        {% endif %}
-    {% endwith %}
-    </div>
-
-    <p><a href="{{url_for('showCatalog')}}">Home</a></p>
-
-    <div class="container">
-			{% block content %}
-			{% endblock %}
-		</div>
-
-    <div id="loginModal" class="modal">
-      <div class="modal-content">
-        <span class="close">&times;</span>
-        {% if "username" not in session %}
-        <script>
-          function redirect_page(message){
-            $("#result").html(message)
-            setTimeout(function() {
-              {% if routeCallBack == "showAllItems" %}
-              window.location.href = "{{url_for(routeCallBack, category_name = category_name|lower)}}";
-              {% elif routeCallBack == "showItem" %}
-              window.location.href = "{{url_for(routeCallBack, category_name = category_name|lower, item_name = item.title|lower)}}";
-              {% else %}
-              window.location.href = "{{url_for(routeCallBack)}}";
-              {% endif %}
-            }, 4000);
-          }
-        </script>
-
-        <div id="result">
-          <p>{% include "g_login.html" %}</p>
-          <p>{% include "fb_login.html" %}</p>
+    <div class="main-container shadowed">
+      <header>
+        <div class="header left">
+          <h1>Item Catalog</h1>
         </div>
-        {% endif %}
+        <div class="header right">
+          {% if "username" not in session %}
+          <button id="loginBtn">Login</button>
+          {% else %}
+          <button id="loginBtn">Logout</button>
+          {% endif %}
+        </div>
+      </header>
+
+      <div>
+      {% with messages = get_flashed_messages() %}
+          {% if messages %}
+          <ul>
+              {% for message in messages %}
+              <li> <strong> {{ message }} </strong> </li>
+              {% endfor %}
+          </ul>
+          {% endif %}
+      {% endwith %}
       </div>
-    </div>
 
-    <script>
-      $("#loginBtn").on("click", function() {
-        {% if "username" not in session %}
-        $("#loginModal").attr("style", "display: block");
-        {% else %}
-        window.location.href="{{url_for('disconnect')}}";
-        {% endif %}
-      });
+      <div class="content-container">
+        <a href="{{url_for('showCatalog')}}">Home</a>
+  			{% block content %}
+  			{% endblock %}
+  		</div>
 
-      $("#loginModal").find(".close").on("click", function() {
-        $("#loginModal").attr("style", "display: none");
-      });
+      <div id="loginModal" class="modal">
+        <div class="modal-content">
+          <span class="close">&times;</span>
+          {% if "username" not in session %}
+          <script>
+            function redirect_page(message){
+              $("#result").html(message)
+              setTimeout(function() {
+                {% if routeCallBack == "showAllItems" %}
+                window.location.href = "{{url_for(routeCallBack, category_name = category_name|lower)}}";
+                {% elif routeCallBack == "showItem" %}
+                window.location.href = "{{url_for(routeCallBack, category_name = category_name|lower, item_name = item.title|lower)}}";
+                {% else %}
+                window.location.href = "{{url_for(routeCallBack)}}";
+                {% endif %}
+              }, 4000);
+            }
+          </script>
 
-      window.onclick = function(event) {
-        if (event.target == $("#loginModal")[0]) {
+          <div id="result">
+            <p>{% include "g_login.html" %}</p>
+            <p>{% include "fb_login.html" %}</p>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <script>
+        $("#loginBtn").on("click", function() {
+          {% if "username" not in session %}
+          $("#loginModal").attr("style", "display: block");
+          {% else %}
+          window.location.href="{{url_for('disconnect')}}";
+          {% endif %}
+        });
+
+        $("#loginModal").find(".close").on("click", function() {
           $("#loginModal").attr("style", "display: none");
+        });
+
+        window.onclick = function(event) {
+          if (event.target == $("#loginModal")[0]) {
+            $("#loginModal").attr("style", "display: none");
+          }
         }
-      }
-    </script>
+      </script>
+    </div>
   </body>
 </html>

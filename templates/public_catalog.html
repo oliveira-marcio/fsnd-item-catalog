@@ -13,6 +13,9 @@
             <h3>Latest Items:</h3>
         {% endif %}
 
+        {% block private_content %}
+        {% endblock %}
+
         {% if items %}
             {% for i in items %}
                 {% if category_name %}
