@@ -97,13 +97,14 @@ def showItem(category_name, item_name):
         creator = getUserInfo(item.user_id, session)
         if "username" not in login_session or creator.id != login_session['user_id']:
             return render_template("public_item.html", category_name = category_name,
-                                    item = item,
+                                    item = item, creator = creator,
                                     STATE = app.config["SECRET_KEY"],
                                     CLIENT_ID = CLIENT_ID,
                                     routeCallBack = "showItem")
         else:
             return render_template("item.html", category_name = category_name,
-                                    item = item, routeCallBack = "showItem")
+                                    item = item, creator = creator,
+                                    routeCallBack = "showItem")
     else:
         return return_value
 

@@ -29,7 +29,7 @@
               // Handle or verify the server response if necessary.
               let message;
               if (result) {
-                message = `Login Successful!</br>${result}</br>Redirecting...`;
+                message = `Login Successful!${result}</br></br>Redirecting...`;
               } else if (authResult["error"]) {
                 message = `There was an error: ${authResult["error"]}</br>Redirecting...`;
               } else {
@@ -37,8 +37,8 @@
               }
               redirect_page(message);
             },
-            error: function(result) {
-              redirect_page(`Error during authentication:</br>${result}</br></br>Try again later.</br></br>Redirecting...`);
+            error: function() {
+              redirect_page(`Error during authentication. Try again later.</br></br>Redirecting...`);
             }
           });
         }

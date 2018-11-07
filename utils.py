@@ -101,7 +101,7 @@ def doGoogleSignIn(app, db_session):
     output += "!</h1>"
     output += "<img src='"
     output += login_session["picture"]
-    output += "' style = 'width: 300px; height: 300px;border-radius: 150px;-webkit-border-radius: 150px;-moz-border-radius: 150px;'>"
+    output += "' style = 'width: 80px; height: 80px;border-radius: 150px;-webkit-border-radius: 150px;-moz-border-radius: 150px;'>"
 
     flash("you are now logged in as %s" % login_session["username"])
     return output
@@ -167,7 +167,7 @@ def doFacebookSignIn(app, db_session):
     output += '!</h1>'
     output += '<img src="'
     output += login_session['picture']
-    output += ' " style = "width: 300px; height: 300px;border-radius: 150px;-webkit-border-radius: 150px;-moz-border-radius: 150px;"> '
+    output += ' " style = "width: 80px; height: 80px;border-radius: 150px;-webkit-border-radius: 150px;-moz-border-radius: 150px;"> '
 
     flash("Now logged in as %s" % login_session['username'])
     return output

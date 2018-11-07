@@ -1,17 +1,17 @@
 {% extends "main.html" %}
 {% block content %}
-        <h1>New Item</h1>
+        <h2>New Item</h2>
         {% if previous_category %}
         <form id="newitem" action="{{url_for('addItem', category_name = previous_category|lower)}}" method = 'POST'>
         {% else %}
         <form id="newitem" action="{{url_for('addItem')}}" method = 'POST'>
         {% endif %}
             <p>Title:</p>
-            <input type="text" size="30" name="title" value="{{item.title}}">
-            <p>Description:</p>
-            <textarea name="description" maxlength="2000" rows="5" cols="40">{{item.description}}</textarea>
-            <p>Category:</p>
-            <select name="category_id" form="newitem">
+            <input type="text" class="input" size="30" name="title" value="{{item.title}}">
+            <p><br>Description:</p>
+            <textarea name="description" class="input" maxlength="2000" rows="5" cols="40">{{item.description}}</textarea>
+            <p><br>Category:</p>
+            <select name="category_id" class="input" form="newitem">
                 <option value="">(Select category)</option>
             {% for c in categories %}
                 {% if item.category_id and c.id == item.category_id|int %}
@@ -25,8 +25,8 @@
             <input type='submit' value='Create'>
         </form>
         {% if previous_category %}
-        <p><a href="{{url_for('showAllItems', category_name = previous_category|lower)}}">Cancelar</a></p>
+        <p><br><a href="{{url_for('showAllItems', category_name = previous_category|lower)}}">Cancelar</a></p>
         {% else %}
-        <p><a href="{{url_for('showCatalog')}}">Cancelar</a></p>
+        <p><br><a href="{{url_for('showCatalog')}}">Cancelar</a></p>
         {% endif %}
 {% endblock %}
