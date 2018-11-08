@@ -1,6 +1,5 @@
 #!/usr/bin/env python2
 # coding: utf-8
-
 from sqlalchemy import Column, ForeignKey, UniqueConstraint, Integer, String
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
@@ -22,7 +21,7 @@ class Categories(Base):
     __tablename__ = "categories"
 
     id = Column(Integer, primary_key=True)
-    name = Column(String(100, collation='NOCASE'), nullable=False)
+    name = Column(String(100, collation="NOCASE"), nullable=False)
 
 
 class Items(Base):
@@ -33,12 +32,12 @@ class Items(Base):
     """
     __tablename__ = "items"
     __table_args__ = (
-        UniqueConstraint('category_id', 'title', name='un_title'),
+        UniqueConstraint("category_id", "title", name="un_title"),
     )
 
     id = Column(Integer, primary_key=True)
     # Atributo "collation" necessário para que o case dos nomes seja ignorado
-    title = Column(String(100, collation='NOCASE'), nullable=False)
+    title = Column(String(100, collation="NOCASE"), nullable=False)
     description = Column(String(2000), nullable=False)
     category_id = Column(Integer, ForeignKey("categories.id"))
     category = relationship(Categories)

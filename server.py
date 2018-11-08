@@ -56,7 +56,7 @@ def disconnect():
 def showCatalog():
     """
     Exibe todo o catálogo e exibe link para adicionar itens se o usuário
-    estiver autenticado. O itens mais recentes estão limitados aos 10 últimos.
+    estiver autenticado. Os itens mais recentes estão limitados aos 10 últimos.
     """
     MAX_RESULTS = 10
     categories = session.query(Categories).order_by(Categories.name).all()
@@ -125,7 +125,7 @@ def showItem(category_name, item_name):
     if item:
         creator = getUserInfo(item.user_id, session)
         if "username" not in login_session or \
-                creator.id != login_session['user_id']:
+                creator.id != login_session["user_id"]:
             return render_template("public_item.html",
                                    category_name=category_name,
                                    item=item, creator=creator,
@@ -139,6 +139,8 @@ def showItem(category_name, item_name):
     else:
         return return_value
 
+
+# Endpoints para alteração do catálogo
 
 @app.route("/catalog/new", defaults={"category_name": None},
            methods=["GET", "POST"])
@@ -157,7 +159,7 @@ def addItem(category_name):
     Em ambos os métodos, é necessário que o usuário esteja autenticado. Caso
     contrário será exibido um erro e o app retornará para a página principal
     """
-    if 'username' not in login_session:
+    if "username" not in login_session:
         flash("You need to sign in first to create new items.")
         if category_name:
             return redirect(url_for("showAllItems",
@@ -201,10 +203,11 @@ def editItem(category_name, item_name):
     preenchidos no formulário. Caso contrário, retorna o formulário para o
     usuário preencher os campos ausentes.
 
-    Em ambos os métodos, é necessário que o usuário esteja autenticado. Caso
-    contrário será exibido um erro e o app retornará para a página principal
+    Em ambos os métodos, é necessário que o usuário esteja autenticado e seja o
+    criador do item. Caso contrário será exibido um erro e o app retornará para
+    a página da categoria informada.
     """
-    if 'username' not in login_session:
+    if "username" not in login_session:
         flash("You need to sign in first to edit items.")
         return redirect(url_for("showItem", category_name=category_name,
                                 item_name=item_name))
@@ -212,7 +215,7 @@ def editItem(category_name, item_name):
     item, return_value = checkCategoryAndItem(category_name, item_name)
 
     if item:
-        if item.user_id != login_session['user_id']:
+        if item.user_id != login_session["user_id"]:
             flash("You can only edit your own items.")
             return redirect(url_for("showItem", category_name=category_name,
                                     item_name=item_name))
@@ -247,7 +250,7 @@ def doDatabaseWrite(categories, previous_category, user_data, item=None):
         item = Items(title=None,
                      description=None,
                      category_id=None,
-                     user_id=login_session['user_id'])
+                     user_id=login_session["user_id"])
         form_name = "newitem.html"
         message = "New item created"
         isInsert = True
@@ -306,10 +309,11 @@ def deleteItem(category_name, item_name):
     Quando o método é POST:
     Remove o item do banco de dados.
 
-    Em ambos os métodos, é necessário que o usuário esteja autenticado. Caso
-    contrário será exibido um erro e o app retornará para a página principal
+    Em ambos os métodos, é necessário que o usuário esteja autenticado e seja o
+    criador do item. Caso contrário será exibido um erro e o app retornará para
+    a página da categoria informada.
     """
-    if 'username' not in login_session:
+    if "username" not in login_session:
         flash("You need to sign in first to delete items.")
         return redirect(url_for("showItem", category_name=category_name,
                                 item_name=item_name))
@@ -317,7 +321,7 @@ def deleteItem(category_name, item_name):
     item, return_value = checkCategoryAndItem(category_name, item_name)
 
     if item:
-        if item.user_id != login_session['user_id']:
+        if item.user_id != login_session["user_id"]:
             flash("You can only delete your own items.")
             return redirect(url_for("showItem", category_name=category_name,
                                     item_name=item_name))

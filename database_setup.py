@@ -16,8 +16,8 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from models import Base, Categories, Items, Users
 
-engine = create_engine('sqlite:///catalog.db',
-                       connect_args={'check_same_thread': False})
+engine = create_engine("sqlite:///catalog.db",
+                       connect_args={"check_same_thread": False})
 DBSession = sessionmaker(bind=engine)
 session = DBSession()
 

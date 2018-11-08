@@ -129,9 +129,9 @@ def doGoogleSignIn(app, db_session):
     login_session["user_id"] = user_id
 
     output = ""
-    output += "<h1>Welcome, "
+    output += "<h2>Welcome, "
     output += login_session["username"]
-    output += "!</h1>"
+    output += "!</h2>"
     output += "<img src='"
     output += login_session["picture"]
     output += """' style = 'width: 80px; height: 80px;border-radius: 150px;
@@ -186,9 +186,9 @@ def doFacebookSignIn(app, db_session):
     do Nanodegree Full Stack Web Developer e apenas precisei adaptá-lo para as
     alterações recentes na API.
     """
-    if request.args.get('state') != app.config["SECRET_KEY"]:
-        response = make_response(json.dumps('Invalid state parameter.'), 401)
-        response.headers['Content-Type'] = 'application/json'
+    if request.args.get("state") != app.config["SECRET_KEY"]:
+        response = make_response(json.dumps("Invalid state parameter."), 401)
+        response.headers["Content-Type"] = "application/json"
         return response
     access_token = request.data
     print "access token received %s " % access_token
@@ -196,41 +196,41 @@ def doFacebookSignIn(app, db_session):
     # Use token to get user info from API
     userinfo_url = "https://graph.facebook.com/me"
 
-    url = '%s?access_token=%s&fields=name,id,email,picture' % \
+    url = "%s?access_token=%s&fields=name,id,email,picture" % \
         (userinfo_url, access_token)
     h = httplib2.Http()
-    result = h.request(url, 'GET')[1]
+    result = h.request(url, "GET")[1]
     # print "url sent for API access:%s"% url
     # print "API JSON result: %s" % result
     data = json.loads(result)
-    login_session['provider'] = 'facebook'
-    login_session['username'] = data["name"]
-    login_session['email'] = data["email"]
-    login_session['facebook_id'] = data["id"]
+    login_session["provider"] = "facebook"
+    login_session["username"] = data["name"]
+    login_session["email"] = data["email"]
+    login_session["facebook_id"] = data["id"]
 
     # The token must be stored in the login_session in order to properly logout
-    login_session['access_token'] = access_token
+    login_session["access_token"] = access_token
 
     # Get user picture
-    login_session['picture'] = data["picture"]["data"]["url"]
+    login_session["picture"] = data["picture"]["data"]["url"]
 
     # see if user exists
-    user_id = getUserID(login_session['email'], db_session)
+    user_id = getUserID(login_session["email"], db_session)
     if not user_id:
         user_id = createUser(login_session, db_session)
-    login_session['user_id'] = user_id
+    login_session["user_id"] = user_id
 
     output = ""
-    output += "<h1>Welcome, "
+    output += "<h2>Welcome, "
     output += login_session["username"]
 
-    output += "!</h1>"
+    output += "!</h2>"
     output += "<img src='"
     output += login_session["picture"]
     output += """' style = 'width: 80px; height: 80px;border-radius: 150px;
         -webkit-border-radius: 150px;-moz-border-radius: 150px;'>"""
 
-    flash("Now logged in as %s" % login_session['username'])
+    flash("Now logged in as %s" % login_session["username"])
     return output
 
 
@@ -242,13 +242,13 @@ def doFacebookSignOut():
     Nanodegree Full Stack Web Developer.
     """
 
-    facebook_id = login_session['facebook_id']
+    facebook_id = login_session["facebook_id"]
     # The access token must me included to successfully logout
-    access_token = login_session['access_token']
-    url = 'https://graph.facebook.com/%s/permissions?access_token=%s' % \
+    access_token = login_session["access_token"]
+    url = "https://graph.facebook.com/%s/permissions?access_token=%s" % \
         (facebook_id, access_token)
     h = httplib2.Http()
-    result = h.request(url, 'DELETE')[1]
+    result = h.request(url, "DELETE")[1]
     return "you have been logged out"
 
 
@@ -262,9 +262,9 @@ def doDisconnect(url_redirect):
             doGoogleSignOut()
             del login_session["gplus_id"]
             del login_session["access_token"]
-        if login_session['provider'] == 'facebook':
+        if login_session["provider"] == "facebook":
             doFacebookSignOut()
-            del login_session['facebook_id']
+            del login_session["facebook_id"]
         del login_session["username"]
         del login_session["email"]
         del login_session["picture"]
