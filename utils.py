@@ -11,6 +11,7 @@ import httplib2
 import json
 from flask import make_response, flash, request
 import requests
+from sqlalchemy.orm import exc
 
 """
 Dados da aplicação cadastrados nas respectivas API's.
@@ -306,7 +307,7 @@ def getUserID(email, db_session):
     try:
         user = db_session.query(Users).filter_by(email=email).one()
         return user.id
-    except NoResultFound, MultipleResultsFound:
+    except exc.NoResultFound, exc.MultipleResultsFound:
         return None
 
 
